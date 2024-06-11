@@ -1,0 +1,64 @@
+[build-system]
+requires = ['setuptools>=40.8.0']
+build-backend = 'setuptools.build_meta'
+
+[tool.setuptools]
+packages = ["polyflame"]
+
+[project]
+name = "polyflame"
+version = "0.1.0"
+description = "Polymorphic FLexible Analytics and Modelling Engine"
+license = {file = "LICENSE"}
+requires-python = ">=3.11"
+readme = "README.md"
+classifiers = ["License :: OSI Approved :: MIT License"]
+dependencies = [
+    "pandas[parquet]==2.2.*",
+    "plotly==5.*"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "pytest-cov",
+  "ruff",
+  "pre-commit"
+]
+docs = [
+  "sphinx>=7.2.2",
+  "myst-parser==2.0.*",
+  "sphinx-better-theme"
+]
+
+[project.urls]
+Home = "https://github.com/globaldothealth/polyflame"
+
+[tool.black]
+line-length = 100
+
+[tool.pytest.ini_options]
+pythonpath = "."
+
+[tool.ruff]
+exclude = [".venv", ".vscode", ".git",  "docs", "tests", "__init__.py"]
+# Same as Black.
+line-length = 100
+indent-width = 4
+
+[tool.ruff.lint]
+extend-select = [
+    "E",        # pycodestyle errors
+    "W",        # pycodestyle warnings
+    "F",        # pyflakes
+    "I",        # isort
+    "C",        # flake8-comprehensions
+    "B",        # flake8-bugbear
+    "ARG",      # flake8-unused-arguments
+    "RUF",      # Ruff-specific
+    "YTT",      # flake8-2020
+]
+ignore = [
+  "C901",       # function is too complex
+  "C408",       # unnecessary `dict` call (rewrite as a literal)
+]

@@ -1,6 +1,6 @@
-# FHIRFLAME
+# PolyFLAME
 
-FHIR FLexible Analytics and Modelling Engine
+Polymorphic FLexible Analytics and Modelling Engine
 
 This package is part of the Global.health-ISARIC pipeline.
 
@@ -28,98 +28,72 @@ for plot types (e.g. age pyramid plot should have a numeric age column).
 
 ## Installing
 
-You can install FHIRFLAME from GitHub
+You can install PolyFLAME from GitHub
 
 ```shell
-pip install git+https://github.com/globaldothealth/FHIRFLAME
+pip install git+https://github.com/globaldothealth/polyflame
 ```
 
 ## Capabilities
 
 ### Generic base for building RAP
 
-FHIRFLAME is a generic library for plots and standard analyses that will
+PolyFLAME is a generic library for plots and standard analyses that will
 be used as a basis for constructing visualizations that work with
 clinical data. The library can generate plots and undertake analyses
 based on a general *dataframe schema* (column names and types).
 
 ```mermaid
 flowchart LR
-OTH[Other formats] --> Result
-REDCap --> Result
-FHIRFlat --> Result --> UP[upset plot]
-Result --> FREQ[frequency plot]
-Result --> P[pyramid plot]
+OTH[Other formats] --> PlotInfo
+REDCap --> PlotInfo
+FHIRFlat --> PlotInfo --> UP[upset plot]
+PlotInfo --> FREQ[frequency plot]
+PlotInfo --> P[pyramid plot]
 ```
 
 Higher level modules in the form of data standard specific extensions
-produce a `Result` object. Higher level modules do not know about the
-particulars of how a plot or analysis is performed. Their only function
-is to construct the `Result` object with a dataframe that conforms to the
-schema required by the result type. An example `Result` construction
-could be like:
+produce a dataframe. Higher level modules do not know
+about the particulars of how a plot or analysis is performed. There is
+a generic `plot()` function which can plot any data as long as it
+is of the correct 'shape':
 
 ```python
->>> Result(df, ResultType.Upset)
+# Example of a dataframe that can be used in a proportion plot
+>>> df = pd.DataFrame({'condition': ['diabetes', 'lung disease'], 'fraction': [0.8, 0.2]})
+>>> plot(df, "proportion", cols={"label": "condition", "proportion": "fraction"})
 ```
 which indicates to the underlying plotting and analysis module that the
-dataframe `df` is in a format that is acceptable to construct a UpSet
-plot from. A `Result` can have multiple 'outputs':
-```python
->>> Result(df, [ResultType.Upset, ResultType.Passthrough])
-```
-with the `Passthrough` ResultType does not alter the dataframe
-and is the simplest ResultType.
-
-Usually the higher level module should construct the dataframe to be
-exactly of the type the appropriate ResultType expects, without which a
-`ResultTypeError` is raised. However in cases where that is not
-possible, one can use the `mapColumns()` function to alter the Result
-object so that the columns match:
-
-```python
->>> Result(df, ResultType.Upset).mapColumns(col="coding.code")
-```
-where ResultType.Upset expects a column named `col`.
-
-Any `Result` object can be saved using the `Result.save()` function
-which will export dataframes as CSV and plots as png.
+dataframe `df` is in a format that is acceptable to construct a proportion
+plot from. A proportion plot requires mapping to 'label' and 'proportion'
+columns (if they are not present) which is specified in the `cols` parameter.
 
 ### Data standard specific extensions
 
-Work with datasets with a `FHIRFlatData` object. Loading the dataset
-automatically verifies checksums, to ensure integrity of data sources
-and follow RAP best practices:
+Extensions are coded as submodules of the main `polyflame` library, such as
+`polyflame.fhirflat` to read FHIRFlat data
 
 ```python
->>> from fhirflame.flat import FHIRFlatData
+>>> from polyflame import load_data
+>>> from polyflame.fhirflat import case_hospitalisation_rate, condition_proportions
 # Data is always loaded with a checksum for reproducibility
->>> data = FHIRFlatData('dengue', checksum="55d0b2642ede06e4d1e0137f85f0536a3256895c22b5e96c89bf923e7328606e")  # loads data from dengue folder
->>> data.N
-458245
->>> data.description
-'Dengue data from Brazil'
->>> data.patient
-<patient dataframe>
+>>> data = load_data('dengue', checksum="55d0b2642ede06e4d1e0137f85f0536a3256895c22b5e96c89bf923e7328606e")  # loads data from dengue folder
+>>> data
+{
+  'N': 458245,
+  'id': 'dengue-brazil-data'
+  'path': '/Users/example/data/dengue'
+  'checksum': '55d0b2642ede06e4d1e0137f85f0536a3256895c22b5e96c89bf923e7328606e'
+}
+>>> polyflame.fhirflat.case_hospitalization_rate(data)
+{
+  'mean': 13
+  'lower_bound': 5
+  'upper_bound': 18
+}
+>>> plot(condition_proportions(data, ["https://snomed.info/sct|2938499", "https://snomed.info/sct|1025273"]), "proportion")
+[plot shown]
 ```
-
-Once the dataset is loaded, it can be passed to analysis functions. Checksums of the source data should be passed through to the Result
-object if possible.
-
-```python
->>> from fhirflame.flat import upset_plot, snomed
->>> plot1 = upset_plot(data.condition, data.terms.adsym_headache + data.terms.adsym_vomit)
-<Result N=20 ResultType.Upset source=/home/work/sample checksum=9238498>
->>> plot1.show()
->>> plot1.data  # gets underlying data
-```
-
-Similar functions:
-
-- `freq_yn_plot_code(data, <table>, <list of codes>)` that does plots such as
-  frequency of signs and symptoms on presentation
-- `count_code(data, <table>, <list of codes>)` creates frequency counts
-- `age_pyramid(data)` returns a age pyramid
 
 ## UX issues
 
