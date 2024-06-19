@@ -45,18 +45,17 @@ based on a general *dataframe schema* (column names and types).
 
 ```mermaid
 flowchart LR
-OTH[Other formats] --> PlotInfo
-REDCap --> PlotInfo
-FHIRFlat --> PlotInfo --> UP[upset plot]
-PlotInfo --> FREQ[frequency plot]
-PlotInfo --> P[pyramid plot]
+OTH[Other formats] --> plot["plot()"]
+REDCap --> plot
+FHIRFlat --> plot --> UP[upset plot]
+plot --> FREQ[frequency plot]
+plot --> P[pyramid plot]
 ```
 
 Higher level modules in the form of data standard specific extensions
-produce a dataframe. Higher level modules do not know
-about the particulars of how a plot or analysis is performed. There is
-a generic `plot()` function which can plot any data as long as it
-is of the correct 'shape':
+produce a dataframe. Higher level modules do not know about the
+particulars of how a plot or analysis is performed. The generic `plot()`
+function can plot any data as long as it is of the correct 'shape':
 
 ```python
 # Example of a dataframe that can be used in a proportion plot
