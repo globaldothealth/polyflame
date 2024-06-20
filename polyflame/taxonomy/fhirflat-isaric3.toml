@@ -1,0 +1,11 @@
+[outcome]
+"https://snomed.info/sct|371827001" = "alive"
+"https://snomed.info/sct|32485007"  = "still-hospitalised"
+"https://snomed.info/sct|306685000" = "transferred"
+"https://snomed.info/sct|419099009" = "death"
+"https://snomed.info/sct|306237005" = "palliative-care"
+"https://snomed.info/sct|225928004" = "self-discharge"
+
+[gender]
+"http://snomed.info/sct|446151000124109" = "male"
+"http://snomed.info/sct|446141000124107" = "female"
