@@ -17,3 +17,8 @@ repos:
     rev: 23.1.0
     hooks:
     - id: black
+
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.7.1
+    hooks:
+      - id: nbstripout
