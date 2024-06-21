@@ -7,5 +7,5 @@
 "https://snomed.info/sct|225928004" = "self-discharge"
 
 [gender]
-"http://snomed.info/sct|446151000124109" = "male"
-"http://snomed.info/sct|446141000124107" = "female"
+"http://snomed.info/sct|248153007" = "male"
+"http://snomed.info/sct|248152002" = "female"

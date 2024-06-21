@@ -1,11 +1,22 @@
 import hashlib
 import tomllib
 from pathlib import Path
+from typing import Callable
 
 from .types import SourceInfo, Taxonomy
 
 
-def get_checksum(file: str) -> str:
+def readable_term(tx: Taxonomy, section: str) -> Callable[[list[str]], str | None]:
+    def func(x: list[str]) -> str | None:
+        if x is None:
+            return None
+        else:
+            return tx[section][x[0]]
+
+    return func
+
+
+def get_checksum(file: str | Path) -> str:
     "Calculate the SHA-256 checksum of a file"
     h = hashlib.sha256()
     with open(file, "rb") as fp:
@@ -24,7 +35,7 @@ def load_taxonomy(file_part: str) -> Taxonomy:
             f"""load_taxonomy('{file_part}') could not find file under 'taxonomy' folder.
 Expected location: {tx_file}"""
         )
-    with tx_file.open() as fp:
+    with tx_file.open("rb") as fp:
         return tomllib.load(fp)
 
 

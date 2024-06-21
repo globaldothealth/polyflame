@@ -304,7 +304,7 @@ def pyramid(data: pd.DataFrame, **kwargs: Unpack[PlotInfo]) -> go.Figure:
     sorted_y_axis = [f"{start}-{end}" for start, end in sorted_ranges]
 
     # sorted_y_axis = sorted(dataframe['y_axis'].unique(), reverse=True)
-    max_value = sum(data.groupby("stack_group").value.apply(max))
+    max_value = sum(data.groupby(c_stack_group)[c_value].apply(max))
     # Layout settings
     layout = go.Layout(
         title=kwargs.get("title", "Pyramid plot"),
@@ -443,9 +443,13 @@ def proportion(data: pd.DataFrame, **kwargs: Unpack[PlotInfo]) -> go.Figure:
     return go.Figure(data=traces, layout=layout)
 
 
-def plot(data: pd.DataFrame, type: PlotType, **kwargs: Unpack[PlotInfo]) -> go.Figure:
+def plot(
+    data: pd.DataFrame, type: PlotType | None, **kwargs: Unpack[PlotInfo]
+) -> go.Figure | pd.DataFrame:
     "Generic plotting function dispatcher"
 
+    if type is None:
+        return data
     dispatch = {"upset": upset, "proportion": proportion, "pyramid": pyramid}
     if type not in dispatch.keys():
         raise ValueError(f"Plotting not supported for type: {type}")

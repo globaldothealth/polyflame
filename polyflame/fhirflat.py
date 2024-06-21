@@ -11,8 +11,8 @@ from typing import Final, Sequence
 import numpy as np
 import pandas as pd
 
-from .types import DataPlotTuple, SourceInfo
-from .util import get_checksum, load_taxonomy, msg_part_not_found
+from .types import DataPlotInfo, SourceInfo
+from .util import get_checksum, load_taxonomy, msg_part_not_found, readable_term
 
 METADATA_FILE: Final[str] = "fhirflat.ini"
 
@@ -25,7 +25,7 @@ def read_metadata(file: Path) -> SourceInfo:
     cf = configparser.ConfigParser()
     cf.read(file)
     metadata = cf["metadata"]
-    n = metadata["n"]
+    n = metadata.get("n", "")
     n = int(n) if n.isdigit() else None
     return {
         "n": n,
@@ -42,7 +42,7 @@ def load_data(folder: str, checksum: str) -> SourceInfo:
         raise FileNotFoundError(f"FHIRFlat metadata not found: {metadata_file}")
     metadata = read_metadata(metadata_file)
     expected_checksum = metadata["checksum"]
-    actual_checksum = get_checksum(metadata["checksum_file"])
+    actual_checksum = get_checksum(metadata["path"] / metadata["checksum_file"])
     if not (expected_checksum == actual_checksum == checksum):
         raise ValueError(
             f"""load_data({folder} failed checksum validation
@@ -87,45 +87,46 @@ def read_condition(data):
     )
 
 
-def condition_proportion(data: SourceInfo) -> DataPlotTuple:
+def condition_proportion(data: SourceInfo) -> DataPlotInfo:
     "Returns proportions of condition"
     condition = read_condition(data)
-    return condition, {}
+    return {"data": condition, "type": "proportion"}
 
 
-def condition_upset(data: SourceInfo) -> DataPlotTuple:
+def condition_upset(data: SourceInfo) -> DataPlotInfo:
     condition = read_condition(data)
 
     # get top 5 conditions and do upset plot
     # pivot and cast to indicator value
-    return condition, {}
+    return {"data": condition, "type": "upset"}
 
 
 def age_pyramid(
     data: SourceInfo,
     tx: dict[str, dict[str, str]] = DEFAULT_TAXONOMY,
     age_bins: Sequence[int] = DEFAULT_AGE_BINS,
-) -> DataPlotTuple:
+) -> DataPlotInfo:
     patient = read_part(
         data,
         "patient",
         {
-            "gender.code": "gender",
+            "extension.birthSex.code": "gender",
             "extension.age.value": "age",
             "extension.age.code": "age_unit",
             "id": "subject",
         },
     )
+    patient["gender"] = patient["gender"].map(readable_term(tx, "gender"))
+
     encounter = read_part(
         data, "encounter", {"subject": "subject", "admission.dischargeDisposition.code": "outcome"}
     )
+    encounter["outcome"] = encounter["outcome"].map(readable_term(tx, "outcome"))
     encounter["subject"] = encounter["subject"].map(lambda x: x.removeprefix("Patient/"))
-    patient["gender"] = patient["gender"].map(tx["gender"])
 
-    # http://unitsofmeasure.org|a represents years
-    patient[patient["age_unit"] != "a"]["age"] = 0  # infants
+    # http://unitsofmeasure.org|a represents years - drop infants
+    patient = patient[patient.age_unit == "http://unitsofmeasure.org|a"]
     patient = patient.merge(encounter, on="subject", how="inner")
-    patient["outcome"] = patient["outcome"].replace(tx["outcome"])
 
     # create age groups and format them as strings
     patient["age_group"] = pd.cut(patient["age"], bins=age_bins).map(
@@ -133,6 +134,8 @@ def age_pyramid(
     )
     patient = patient[["gender", "age_group", "outcome"]].value_counts().reset_index()
 
-    return patient, {
-        "cols": {"side": "gender", "y": "age_group", "stack_group": "outcome", "value": "count"}
+    return {
+        "data": patient,
+        "type": "pyramid",
+        "cols": {"side": "gender", "y": "age_group", "stack_group": "outcome", "value": "count"},
     }
