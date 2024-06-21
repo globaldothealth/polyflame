@@ -18,7 +18,8 @@ itself, and as a building block for visualizations such as
 
 **Output**: A easy to use library that can be used in Jupyter notebooks and
 other downstream code to allow querying answers to [common research
-questions](../1.01_ISARIC3/README.md#research-questions).
+questions](../1.01_ISARIC3/README.md#research-questions) in
+a reproducible analytical pipeline (RAP).
 
 **Non-goals**: Allow answering arbitrary questions. FHIRFlat uses open formats
 (parquet) that users can query directly using tools such as pandas or the R
