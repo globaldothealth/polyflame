@@ -13,6 +13,7 @@ import pandas as pd
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 
+from .palettes import PALETTE_GLOBALDOTHEALTH
 from .types import PlotInfo, PlotType
 
 DEFAULT_HEIGHT = 430
@@ -24,15 +25,7 @@ def ax(cols: dict[str, str], key: str) -> str:
 
 
 def get_colors(kwargs: PlotInfo) -> list[str]:
-    return kwargs.get("colors") or [
-        # G.h color palette
-        "#007AEC",
-        "#6BADEA",
-        "#00C6AF",
-        "#0E7569",
-        "#FD685B",
-        "#FD9986",
-    ]
+    return kwargs.get("colors") or PALETTE_GLOBALDOTHEALTH
 
 
 def require_columns(
@@ -289,7 +282,6 @@ def pyramid(data: pd.DataFrame, **kwargs: Unpack[PlotInfo]) -> go.Figure:
     max_value = data[c_value].abs().max()
     for side, stack_group in slots:
         subset = data[(data[c_side] == side) & (data[c_stack_group] == stack_group)]
-        print(subset)
         if subset.empty:
             continue
         # Get color from the color_map using both side and stack_group
