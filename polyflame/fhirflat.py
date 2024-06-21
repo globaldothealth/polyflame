@@ -11,8 +11,8 @@ from typing import Final, Sequence
 import numpy as np
 import pandas as pd
 
-from .types import DataPlotInfo, SourceInfo
-from .util import get_checksum, load_taxonomy, msg_part_not_found, readable_term
+from .types import DataPlotInfo, SourceInfo, Taxonomy
+from .util import get_checksum, load_taxonomy, msg_part_not_found, use_readable_terms
 
 METADATA_FILE: Final[str] = "fhirflat.ini"
 
@@ -80,17 +80,29 @@ def read_condition(data):
         data,
         "condition",
         {
-            "extension.presenceAbsence.code": "is_present",
-            "code.code": "code",
-            "category.code": "category_code",
+            "extension.presenceAbsence.code": "presenceAbsence",
+            "code.code": "condition",
+            "category.code": "category",
         },
     )
 
 
-def condition_proportion(data: SourceInfo) -> DataPlotInfo:
+def condition_proportion(data: SourceInfo, tx: Taxonomy) -> DataPlotInfo:
     "Returns proportions of condition"
     condition = read_condition(data)
-    return {"data": condition, "type": "proportion"}
+    use_readable_terms(condition, tx, "presenceAbsence", drop_nulls=True)
+    use_readable_terms(condition, tx, "condition")
+
+    # Uses the fact that True = 1 and False = 0 in Python 3, so .mean()
+    # gives the proportion of rows where condition is present amongst
+    # all patients for whom the condition was recorded
+    df = condition.groupby("condition").presenceAbsence.mean().reset_index()
+    df = df[~pd.isna(df.presenceAbsence)].rename(columns={"presenceAbsence": "proportion"})
+    return {
+        "data": df,
+        "type": "proportion",
+        "cols": {"label": "condition"},
+    }
 
 
 def condition_upset(data: SourceInfo) -> DataPlotInfo:
@@ -103,7 +115,7 @@ def condition_upset(data: SourceInfo) -> DataPlotInfo:
 
 def age_pyramid(
     data: SourceInfo,
-    tx: dict[str, dict[str, str]] = DEFAULT_TAXONOMY,
+    tx: Taxonomy = DEFAULT_TAXONOMY,
     age_bins: Sequence[int] = DEFAULT_AGE_BINS,
 ) -> DataPlotInfo:
     patient = read_part(
@@ -116,12 +128,12 @@ def age_pyramid(
             "id": "subject",
         },
     )
-    patient["gender"] = patient["gender"].map(readable_term(tx, "gender"))
+    use_readable_terms(patient, tx, "gender")
 
     encounter = read_part(
         data, "encounter", {"subject": "subject", "admission.dischargeDisposition.code": "outcome"}
     )
-    encounter["outcome"] = encounter["outcome"].map(readable_term(tx, "outcome"))
+    use_readable_terms(encounter, tx, "outcome")
     encounter["subject"] = encounter["subject"].map(lambda x: x.removeprefix("Patient/"))
 
     # http://unitsofmeasure.org|a represents years - drop infants

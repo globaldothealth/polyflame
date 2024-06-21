@@ -1,11 +1,26 @@
 [outcome]
 "https://snomed.info/sct|371827001" = "alive"
-"https://snomed.info/sct|32485007"  = "still-hospitalised"
-"https://snomed.info/sct|306685000" = "transferred"
+"https://snomed.info/sct|32485007" = "censored"    # still hospitalised
+"https://snomed.info/sct|306685000" = "censored"   # transferred
 "https://snomed.info/sct|419099009" = "death"
-"https://snomed.info/sct|306237005" = "palliative-care"
-"https://snomed.info/sct|225928004" = "self-discharge"
+"https://snomed.info/sct|306237005" = "censored"   # palliative care
+"https://snomed.info/sct|225928004" = "discharged"
 
 [gender]
 "http://snomed.info/sct|248153007" = "male"
 "http://snomed.info/sct|248152002" = "female"
+
+[presenceAbsence]
+"https://snomed.info/sct|373066003" = true
+"https://snomed.info/sct|373067005" = false
+
+[condition]
+"https://snomed.info/sct|38341003" = "hypertension"
+"https://snomed.info/sct|709044004" = "chronic kidney disease"
+"https://snomed.info/sct|73211009" = "diabetes"
+"https://snomed.info/sct|44054006" = "diabetes (type 2)"
+"https://snomed.info/sct|46635009" = "diabetes (type 1)"
+"https://snomed.info/sct|274640006" = "fever"
+"https://snomed.info/sct|25064002" = "headache"
+"https://snomed.info/sct|68962001" = "muscle pain"
+"https://snomed.info/sct|422400008" = "vomiting"
