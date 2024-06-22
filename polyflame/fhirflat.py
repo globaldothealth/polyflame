@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 from .types import DataPlotInfo, SourceInfo, Taxonomy
-from .util import get_checksum, load_taxonomy, msg_part_not_found, use_readable_terms
+from .util import get_checksum, load_taxonomy, msg_part_not_found, with_readable_terms
 
 METADATA_FILE: Final[str] = "fhirflat.ini"
 
@@ -56,7 +56,7 @@ Specified: {expected_checksum}.
     return metadata
 
 
-def get_part(data: SourceInfo, resource: str) -> Path:
+def part_file(data: SourceInfo, resource: str) -> Path:
     path = data["path"]
     resource_file = path / f"{resource}.parquet"
     if not resource_file.exists():
@@ -67,7 +67,7 @@ def get_part(data: SourceInfo, resource: str) -> Path:
 def read_part(
     data: SourceInfo, resource: str, column_mappings: dict[str, str] | None = None
 ) -> pd.DataFrame:
-    df = pd.read_parquet(get_part(data, resource))
+    df = pd.read_parquet(part_file(data, resource))
     if column_mappings:
         df = df[list(column_mappings.keys())]  # only keep columns in mappings
         return df.rename(columns=column_mappings)
@@ -75,23 +75,25 @@ def read_part(
         return df
 
 
-def read_condition(data):
-    return read_part(
+def read_condition(data: SourceInfo, tx: Taxonomy = DEFAULT_TAXONOMY):
+    condition = read_part(
         data,
         "condition",
         {
+            "subject": "subject",
             "extension.presenceAbsence.code": "presenceAbsence",
             "code.code": "condition",
             "category.code": "category",
         },
     )
+    return with_readable_terms(
+        condition, tx, [{"column": "presenceAbsence", "drop_nulls": True}, {"column": "condition"}]
+    )
 
 
 def condition_proportion(data: SourceInfo, tx: Taxonomy) -> DataPlotInfo:
     "Returns proportions of condition"
-    condition = read_condition(data)
-    use_readable_terms(condition, tx, "presenceAbsence", drop_nulls=True)
-    use_readable_terms(condition, tx, "condition")
+    condition = read_condition(data, tx)
 
     # Uses the fact that True = 1 and False = 0 in Python 3, so .mean()
     # gives the proportion of rows where condition is present amongst
@@ -105,12 +107,19 @@ def condition_proportion(data: SourceInfo, tx: Taxonomy) -> DataPlotInfo:
     }
 
 
-def condition_upset(data: SourceInfo) -> DataPlotInfo:
+def condition_upset(data: SourceInfo, N: int = 5) -> pd.DataFrame:
+    "Returns UpSet plot data, for top `N` conditions (default 5)"
     condition = read_condition(data)
+    condition = condition[["subject", "condition", "presenceAbsence"]]
+    condition_counts = condition[condition.presenceAbsence].condition.value_counts()
+    top_conditions = list(condition_counts[:N].index)
+    condition = condition[condition.condition.isin(top_conditions)]
+    df = condition.pivot(index="subject", columns="condition")
+    df.columns = [p[1] for p in df.columns.to_flat_index()]
 
-    # get top 5 conditions and do upset plot
+    # Get top 5 conditions and do upset plot
     # pivot and cast to indicator value
-    return {"data": condition, "type": "upset"}
+    return df
 
 
 def age_pyramid(
@@ -118,22 +127,30 @@ def age_pyramid(
     tx: Taxonomy = DEFAULT_TAXONOMY,
     age_bins: Sequence[int] = DEFAULT_AGE_BINS,
 ) -> DataPlotInfo:
-    patient = read_part(
-        data,
-        "patient",
-        {
-            "extension.birthSex.code": "gender",
-            "extension.age.value": "age",
-            "extension.age.code": "age_unit",
-            "id": "subject",
-        },
+    patient = with_readable_terms(
+        read_part(
+            data,
+            "patient",
+            {
+                "extension.birthSex.code": "gender",
+                "extension.age.value": "age",
+                "extension.age.code": "age_unit",
+                "id": "subject",
+            },
+        ),
+        tx,
+        [{"column": "gender"}],
     )
-    use_readable_terms(patient, tx, "gender")
 
-    encounter = read_part(
-        data, "encounter", {"subject": "subject", "admission.dischargeDisposition.code": "outcome"}
+    encounter = with_readable_terms(
+        read_part(
+            data,
+            "encounter",
+            {"subject": "subject", "admission.dischargeDisposition.code": "outcome"},
+        ),
+        tx,
+        [{"column": "outcome"}],
     )
-    use_readable_terms(encounter, tx, "outcome")
     encounter["subject"] = encounter["subject"].map(lambda x: x.removeprefix("Patient/"))
 
     # http://unitsofmeasure.org|a represents years - drop infants

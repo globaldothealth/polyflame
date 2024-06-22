@@ -14,7 +14,7 @@ import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 
 from .palettes import PALETTE_GLOBALDOTHEALTH
-from .types import PlotInfo, PlotType
+from .types import DataPlotInfo, PlotInfo, PlotType
 
 DEFAULT_HEIGHT = 430
 DEFAULT_FONT = "Helvetica"
@@ -108,22 +108,25 @@ def upset(data, **kwargs: Unpack[PlotInfo]) -> go.Figure:
     # Create bar chart traces for intersection sizes
     bar_traces = []
     for intersection, size in intersections.items():
-        bar_traces.append(
-            go.Bar(
-                y=[size],
-                x=[" & ".join(intersection)],
-                orientation="v",
-                name=" & ".join(intersection),
-                marker={"color": colors[0]},
+        if size > 0:
+            bar_traces.append(
+                go.Bar(
+                    y=[size],
+                    x=[" & ".join(intersection)],
+                    orientation="v",
+                    name=" & ".join(intersection),
+                    marker={"color": colors[0]},
+                )
             )
-        )
 
     # Add bar traces to the top subplot
     for trace in bar_traces:
         fig.add_trace(trace, row=1, col=1)
 
     # Create matrix scatter plot and lines
-    for intersection in intersections:
+    for intersection, size in intersections.items():
+        if size == 0:
+            continue
         x_name = " & ".join(intersection)
         y_coords = [-1 - categories.get_loc(cat) for cat in categories if cat in intersection]  # type: ignore
         x_coords = [x_name] * len(y_coords)
@@ -136,6 +139,7 @@ def upset(data, **kwargs: Unpack[PlotInfo]) -> go.Figure:
                 mode="markers",
                 marker=dict(size=10, color="black"),
                 showlegend=False,
+                hoverinfo="skip",
             ),
             row=2,
             col=1,
@@ -150,6 +154,7 @@ def upset(data, **kwargs: Unpack[PlotInfo]) -> go.Figure:
                     mode="lines",
                     line=dict(color="black", width=1),
                     showlegend=False,
+                    hoverinfo="skip",
                 ),
                 row=2,
                 col=1,
@@ -443,7 +448,7 @@ def proportion(data: pd.DataFrame, **kwargs: Unpack[PlotInfo]) -> go.Figure:
     return go.Figure(data=traces, layout=layout)
 
 
-def plot(
+def plot_unpacked(
     data: pd.DataFrame, type: PlotType | None, **kwargs: Unpack[PlotInfo]
 ) -> go.Figure | pd.DataFrame:
     "Generic plotting function dispatcher"
@@ -454,3 +459,7 @@ def plot(
     if type not in dispatch.keys():
         raise ValueError(f"Plotting not supported for type: {type}")
     return dispatch[type](data, **kwargs)
+
+
+def plot(kwargs: DataPlotInfo) -> go.Figure | pd.DataFrame:
+    return plot_unpacked(**kwargs)

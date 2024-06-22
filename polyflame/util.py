@@ -5,7 +5,7 @@ from typing import Callable
 
 import pandas as pd
 
-from .types import SourceInfo, Taxonomy
+from .types import ReadableTermColumnInfo, SourceInfo, Taxonomy
 
 
 def _readable_term(tx: Taxonomy, section: str) -> Callable[[list[str]], str | bool | None]:
@@ -22,17 +22,17 @@ def _readable_term(tx: Taxonomy, section: str) -> Callable[[list[str]], str | bo
     return func
 
 
-def use_readable_terms(
-    data: pd.DataFrame,
-    tx: Taxonomy,
-    column: str,
-    taxonomy_section: str | None = None,
-    drop_nulls: bool = False,
-):
+def with_readable_terms(
+    data: pd.DataFrame, tx: Taxonomy, columns: list[ReadableTermColumnInfo]
+) -> pd.DataFrame:
     "In place replacement of codes with readable terms"
-    data[column] = data[column].map(_readable_term(tx, taxonomy_section or column))
-    if drop_nulls:
-        data = data[~pd.isnull(data)]
+    for c in columns:
+        data.loc[:, c["column"]] = data[c["column"]].map(
+            _readable_term(tx, c.get("taxonomy_section") or c["column"])
+        )
+        if c.get("drop_nulls", False):
+            data = data[~pd.isnull(data[c["column"]])]
+    return data
 
 
 def get_checksum(file: str | Path) -> str:

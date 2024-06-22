@@ -16,6 +16,12 @@ class ReadableTermColumnInfo(TypedDict, total=False):
 >>>>>>> 7519b55 (add condition_proportion)
 
 
+class ReadableTermColumnInfo(TypedDict, total=False):
+    column: Required[str]
+    taxonomy_section: str
+    drop_nulls: bool
+
+
 class SourceInfo(TypedDict):
     n: int | None
     path: Path
