@@ -107,19 +107,18 @@ def condition_proportion(data: SourceInfo, tx: Taxonomy) -> DataPlotInfo:
     }
 
 
-def condition_upset(data: SourceInfo, N: int = 5) -> pd.DataFrame:
+def condition_upset(data: SourceInfo, N: int = 5) -> DataPlotInfo:
     "Returns UpSet plot data, for top `N` conditions (default 5)"
-    condition = read_condition(data)
-    condition = condition[["subject", "condition", "presenceAbsence"]]
+    condition = read_condition(data)[["subject", "condition", "presenceAbsence"]]
+
+    # get top N conditions
     condition_counts = condition[condition.presenceAbsence].condition.value_counts()
     top_conditions = list(condition_counts[:N].index)
     condition = condition[condition.condition.isin(top_conditions)]
+
     df = condition.pivot(index="subject", columns="condition")
     df.columns = [p[1] for p in df.columns.to_flat_index()]
-
-    # Get top 5 conditions and do upset plot
-    # pivot and cast to indicator value
-    return df
+    return {"data": df, "type": "upset", "title": "Condition UpSet plot"}
 
 
 def age_pyramid(
