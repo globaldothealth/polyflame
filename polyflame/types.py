@@ -5,15 +5,6 @@ import pandas as pd
 
 PlotType = Literal["pyramid", "upset", "proportion"]
 Taxonomy = dict[str, dict[str, str | bool]]
-<<<<<<< HEAD
-
-
-class ReadableTermColumnInfo(TypedDict, total=False):
-    column: Required[str]
-    taxonomy_section: str
-    drop_nulls: bool
-=======
->>>>>>> 7519b55 (add condition_proportion)
 
 
 class ReadableTermColumnInfo(TypedDict, total=False):
@@ -23,7 +14,7 @@ class ReadableTermColumnInfo(TypedDict, total=False):
 
 
 class SourceInfo(TypedDict):
-    n: int | None
+    N: int | None
     path: Path
     checksum: str
     checksum_file: str

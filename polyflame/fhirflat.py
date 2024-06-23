@@ -4,7 +4,7 @@ FHIRFlat adapter for PolyFLAME
 Reads in FHIRFlat files and provides commonly used analysis functions
 """
 
-import configparser
+import tomllib
 from pathlib import Path
 from typing import Final, Sequence
 
@@ -14,7 +14,7 @@ import pandas as pd
 from .types import DataPlotInfo, SourceInfo, Taxonomy
 from .util import get_checksum, load_taxonomy, msg_part_not_found, with_readable_terms
 
-METADATA_FILE: Final[str] = "fhirflat.ini"
+METADATA_FILE: Final[str] = "fhirflat.toml"
 
 DEFAULT_TAXONOMY = load_taxonomy("fhirflat-isaric3")
 DEFAULT_AGE_BINS = [-1, *list(5 * np.arange(25))]  # highest age of 120
@@ -22,20 +22,17 @@ DEFAULT_AGE_BINS = [-1, *list(5 * np.arange(25))]  # highest age of 120
 
 def read_metadata(file: Path) -> SourceInfo:
     "Read FHIRFlat metadata file"
-    cf = configparser.ConfigParser()
-    cf.read(file)
-    metadata = cf["metadata"]
-    n = metadata.get("n", "")
-    n = int(n) if n.isdigit() else None
+    metadata = tomllib.loads(file.read_text())["metadata"]
+    N = metadata.get("N")
     return {
-        "n": n,
+        "N": N,
         "checksum": metadata["checksum"],
         "checksum_file": metadata["checksum_file"],
         "path": file.parent,
     }
 
 
-def load_data(folder: str, checksum: str) -> SourceInfo:
+def use_source(folder: str | Path, checksum: str) -> SourceInfo:
     "Reads FHIRFlat data"
     metadata_file = Path(folder) / METADATA_FILE
     if not metadata_file.exists():
@@ -56,18 +53,18 @@ Specified: {expected_checksum}.
     return metadata
 
 
-def part_file(data: SourceInfo, resource: str) -> Path:
-    path = data["path"]
+def part_file(source: SourceInfo, resource: str) -> Path:
+    path = source["path"]
     resource_file = path / f"{resource}.parquet"
     if not resource_file.exists():
-        raise ValueError(msg_part_not_found(data, resource))
+        raise ValueError(msg_part_not_found(source, resource))
     return resource_file
 
 
 def read_part(
-    data: SourceInfo, resource: str, column_mappings: dict[str, str] | None = None
+    source: SourceInfo, resource: str, column_mappings: dict[str, str] | None = None
 ) -> pd.DataFrame:
-    df = pd.read_parquet(part_file(data, resource))
+    df = pd.read_parquet(part_file(source, resource))
     if column_mappings:
         df = df[list(column_mappings.keys())]  # only keep columns in mappings
         return df.rename(columns=column_mappings)
@@ -75,9 +72,9 @@ def read_part(
         return df
 
 
-def read_condition(data: SourceInfo, tx: Taxonomy = DEFAULT_TAXONOMY):
+def read_condition(source: SourceInfo, tx: Taxonomy = DEFAULT_TAXONOMY):
     condition = read_part(
-        data,
+        source,
         "condition",
         {
             "subject": "subject",
@@ -91,9 +88,9 @@ def read_condition(data: SourceInfo, tx: Taxonomy = DEFAULT_TAXONOMY):
     )
 
 
-def condition_proportion(data: SourceInfo, tx: Taxonomy) -> DataPlotInfo:
+def condition_proportion(source: SourceInfo, tx: Taxonomy) -> DataPlotInfo:
     "Returns proportions of condition"
-    condition = read_condition(data, tx)
+    condition = read_condition(source, tx)
 
     # Uses the fact that True = 1 and False = 0 in Python 3, so .mean()
     # gives the proportion of rows where condition is present amongst
@@ -107,9 +104,9 @@ def condition_proportion(data: SourceInfo, tx: Taxonomy) -> DataPlotInfo:
     }
 
 
-def condition_upset(data: SourceInfo, N: int = 5) -> DataPlotInfo:
+def condition_upset(source: SourceInfo, N: int = 5) -> DataPlotInfo:
     "Returns UpSet plot data, for top `N` conditions (default 5)"
-    condition = read_condition(data)[["subject", "condition", "presenceAbsence"]]
+    condition = read_condition(source)[["subject", "condition", "presenceAbsence"]]
 
     # get top N conditions
     condition_counts = condition[condition.presenceAbsence].condition.value_counts()
@@ -122,13 +119,13 @@ def condition_upset(data: SourceInfo, N: int = 5) -> DataPlotInfo:
 
 
 def age_pyramid(
-    data: SourceInfo,
+    source: SourceInfo,
     tx: Taxonomy = DEFAULT_TAXONOMY,
     age_bins: Sequence[int] = DEFAULT_AGE_BINS,
 ) -> DataPlotInfo:
     patient = with_readable_terms(
         read_part(
-            data,
+            source,
             "patient",
             {
                 "extension.birthSex.code": "gender",
@@ -143,7 +140,7 @@ def age_pyramid(
 
     encounter = with_readable_terms(
         read_part(
-            data,
+            source,
             "encounter",
             {"subject": "subject", "admission.dischargeDisposition.code": "outcome"},
         ),

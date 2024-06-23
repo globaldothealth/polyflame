@@ -48,7 +48,7 @@ def get_checksum(file: str | Path) -> str:
 
 
 def load_taxonomy(file_part: str) -> Taxonomy:
-    tx_file = Path(__file__).parent / "taxonomy" / (file_part + ".toml")
+    tx_file = Path(__file__).parent / "taxonomy" / (file_part.removesuffix(".toml") + ".toml")
     if not tx_file.exists():
         raise FileNotFoundError(
             f"""load_taxonomy('{file_part}') could not find file under 'taxonomy' folder.
