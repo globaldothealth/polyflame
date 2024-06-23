@@ -65,7 +65,7 @@ def _compute_intersections(dataframe: pd.DataFrame) -> OrderedDict:
         for combo in itertools.combinations(categories, r):
             # Intersection is where all categories in the combo have a 1
             mask = dataframe[list(combo)].all(axis=1)
-            intersections[combo] = mask.sum()
+            intersections[combo] = int(mask.sum())
 
     # Sort intersections by size in descending order
     return OrderedDict(sorted(intersections.items(), key=lambda x: x[1], reverse=True))

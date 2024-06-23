@@ -8,7 +8,7 @@ Taxonomy = dict[str, dict[str, str | bool]]
 
 
 class ReadableTermColumnInfo(TypedDict, total=False):
-    column: Required[str]
+    term_column: Required[str]
     taxonomy_section: str
     drop_nulls: bool
 

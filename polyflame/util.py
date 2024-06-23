@@ -27,11 +27,11 @@ def with_readable_terms(
 ) -> pd.DataFrame:
     "In place replacement of codes with readable terms"
     for c in columns:
-        data.loc[:, c["column"]] = data[c["column"]].map(
-            _readable_term(tx, c.get("taxonomy_section") or c["column"])
+        data.loc[:, c["term_column"]] = data[c["term_column"]].map(
+            _readable_term(tx, c.get("taxonomy_section") or c["term_column"])
         )
         if c.get("drop_nulls", False):
-            data = data[~pd.isnull(data[c["column"]])]
+            data = data[~pd.isnull(data[c["term_column"]])]
     return data
 
 
@@ -58,5 +58,5 @@ Expected location: {tx_file}"""
         return tomllib.load(fp)
 
 
-def msg_part_not_found(data: SourceInfo, part: str) -> str:
-    return f"Data at path={data['path']} missing part={part}"
+def msg_part_not_found(source: SourceInfo, part: str) -> str:
+    return f"Data at path={source['path']} missing part={part}"

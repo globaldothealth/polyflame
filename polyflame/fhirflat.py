@@ -57,7 +57,7 @@ def part_file(source: SourceInfo, resource: str) -> Path:
     path = source["path"]
     resource_file = path / f"{resource}.parquet"
     if not resource_file.exists():
-        raise ValueError(msg_part_not_found(source, resource))
+        raise FileNotFoundError(msg_part_not_found(source, resource))
     return resource_file
 
 
@@ -84,17 +84,20 @@ def read_condition(source: SourceInfo, tx: Taxonomy = DEFAULT_TAXONOMY):
         },
     )
     return with_readable_terms(
-        condition, tx, [{"column": "presenceAbsence", "drop_nulls": True}, {"column": "condition"}]
+        condition,
+        tx,
+        [{"term_column": "presenceAbsence", "drop_nulls": True}, {"term_column": "condition"}],
     )
 
 
-def condition_proportion(source: SourceInfo, tx: Taxonomy) -> DataPlotInfo:
+def condition_proportion(source: SourceInfo, tx: Taxonomy = DEFAULT_TAXONOMY) -> DataPlotInfo:
     "Returns proportions of condition"
     condition = read_condition(source, tx)
 
     # Uses the fact that True = 1 and False = 0 in Python 3, so .mean()
     # gives the proportion of rows where condition is present amongst
     # all patients for whom the condition was recorded
+
     df = condition.groupby("condition").presenceAbsence.mean().reset_index()
     df = df[~pd.isna(df.presenceAbsence)].rename(columns={"presenceAbsence": "proportion"})
     return {
@@ -107,14 +110,16 @@ def condition_proportion(source: SourceInfo, tx: Taxonomy) -> DataPlotInfo:
 def condition_upset(source: SourceInfo, N: int = 5) -> DataPlotInfo:
     "Returns UpSet plot data, for top `N` conditions (default 5)"
     condition = read_condition(source)[["subject", "condition", "presenceAbsence"]]
-
     # get top N conditions
     condition_counts = condition[condition.presenceAbsence].condition.value_counts()
     top_conditions = list(condition_counts[:N].index)
     condition = condition[condition.condition.isin(top_conditions)]
+    condition.to_csv("condition.csv")
 
-    df = condition.pivot(index="subject", columns="condition")
-    df.columns = [p[1] for p in df.columns.to_flat_index()]
+    df = condition.pivot_table(
+        index="subject", columns="condition", values="presenceAbsence", aggfunc="sum", fill_value=0
+    )
+    df = df.astype(bool)
     return {"data": df, "type": "upset", "title": "Condition UpSet plot"}
 
 
@@ -135,7 +140,7 @@ def age_pyramid(
             },
         ),
         tx,
-        [{"column": "gender"}],
+        [{"term_column": "gender"}],
     )
 
     encounter = with_readable_terms(
@@ -145,14 +150,15 @@ def age_pyramid(
             {"subject": "subject", "admission.dischargeDisposition.code": "outcome"},
         ),
         tx,
-        [{"column": "outcome"}],
+        [{"term_column": "outcome"}],
     )
     encounter["subject"] = encounter["subject"].map(lambda x: x.removeprefix("Patient/"))
 
     # http://unitsofmeasure.org|a represents years - drop infants
-    patient = patient[patient.age_unit == "http://unitsofmeasure.org|a"]
+    patient = patient[patient.age_unit == "https://unitsofmeasure.org|a"]
     patient = patient.merge(encounter, on="subject", how="inner")
 
+    print(patient)
     # create age groups and format them as strings
     patient["age_group"] = pd.cut(patient["age"], bins=age_bins).map(
         lambda iv: f"{iv.left + 1} - {iv.right}"
