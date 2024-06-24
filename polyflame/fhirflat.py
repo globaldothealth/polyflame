@@ -107,14 +107,15 @@ def condition_proportion(source: SourceInfo, tx: Taxonomy = DEFAULT_TAXONOMY) ->
     }
 
 
-def condition_upset(source: SourceInfo, N: int = 5) -> DataPlotInfo:
+def condition_upset(
+    source: SourceInfo, tx: Taxonomy = DEFAULT_TAXONOMY, N: int = 5
+) -> DataPlotInfo:
     "Returns UpSet plot data, for top `N` conditions (default 5)"
-    condition = read_condition(source)[["subject", "condition", "presenceAbsence"]]
+    condition = read_condition(source, tx)[["subject", "condition", "presenceAbsence"]]
     # get top N conditions
     condition_counts = condition[condition.presenceAbsence].condition.value_counts()
     top_conditions = list(condition_counts[:N].index)
     condition = condition[condition.condition.isin(top_conditions)]
-    condition.to_csv("condition.csv")
 
     df = condition.pivot_table(
         index="subject", columns="condition", values="presenceAbsence", aggfunc="sum", fill_value=0
@@ -155,10 +156,12 @@ def age_pyramid(
     encounter["subject"] = encounter["subject"].map(lambda x: x.removeprefix("Patient/"))
 
     # http://unitsofmeasure.org|a represents years - drop infants
-    patient = patient[patient.age_unit == "https://unitsofmeasure.org|a"]
+    patient = patient[
+        (patient.age_unit == "http://unitsofmeasure.org|a")
+        | (patient.age_unit == "https://unitsofmeasure.org|a")
+    ]
     patient = patient.merge(encounter, on="subject", how="inner")
 
-    print(patient)
     # create age groups and format them as strings
     patient["age_group"] = pd.cut(patient["age"], bins=age_bins).map(
         lambda iv: f"{iv.left + 1} - {iv.right}"
