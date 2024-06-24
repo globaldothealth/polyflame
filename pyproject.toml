@@ -23,8 +23,6 @@ dependencies = [
 dev = [
   "pytest",
   "pytest-cov",
-  "ruff",
-  "pre-commit"
 ]
 docs = [
   "sphinx>=7.2.2",
