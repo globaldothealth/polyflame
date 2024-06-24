@@ -1,14 +1,20 @@
 from pathlib import Path
-from typing import Literal, TypedDict
+from typing import Literal, Required, TypedDict
 
 import pandas as pd
 
 PlotType = Literal["pyramid", "upset", "proportion"]
-Taxonomy = dict[str, dict[str, str]]
+Taxonomy = dict[str, dict[str, str | bool]]
+
+
+class ReadableTermColumnInfo(TypedDict, total=False):
+    term_column: Required[str]
+    taxonomy_section: str
+    drop_nulls: bool
 
 
 class SourceInfo(TypedDict):
-    n: int | None
+    N: int | None
     path: Path
     checksum: str
     checksum_file: str
@@ -25,4 +31,6 @@ class PlotInfo(TypedDict, total=False):
     ylabel: str
 
 
-DataPlotTuple = tuple[pd.DataFrame, PlotInfo]
+class DataPlotInfo(PlotInfo):
+    data: pd.DataFrame
+    type: PlotType | None

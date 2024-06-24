@@ -4,6 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [tool.setuptools]
 packages = ["polyflame"]
+include-package-data = true
 
 [project]
 name = "polyflame"
@@ -22,8 +23,6 @@ dependencies = [
 dev = [
   "pytest",
   "pytest-cov",
-  "ruff",
-  "pre-commit"
 ]
 docs = [
   "sphinx>=7.2.2",

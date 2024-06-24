@@ -18,7 +18,7 @@ import pandas as pd
 
 from ..util import get_checksum
 
-N = 50
+N = 10
 WeightedCodes = dict[str, dict[str, float | int]]
 
 
@@ -80,6 +80,15 @@ W: WeightedCodes = {
     },
 }
 
+SYMPTOMS = [
+    "https://snomed.info/sct|274640006",  # fever
+    "https://snomed.info/sct|25064002",  # headache
+    "https://snomed.info/sct|68962001",  # muscle pain
+    "https://snomed.info/sct|422400008",  # vomiting
+]
+SYMPTOM_CATEGORY = "http://loinc.org|75325-1"
+COMORBIDITY_CATEGORY = "https://snomed.info/sct|398192003"
+
 IDs = generate_ids(N)
 Patient = TypedDict(
     "Patient",
@@ -100,6 +109,7 @@ Condition = TypedDict(
         "encounter": str,
         "code.code": list[str],
         "extension.presenceAbsence.code": list[str],
+        "category.code": list[str],
     },
 )
 
@@ -137,17 +147,55 @@ def generate_encounter(id: str) -> Encounter:
     }
 
 
+def random_index(cumulative_weights: list[float]) -> int:
+    "Returns index according to weights"
+    p = random.random()
+    for i, w in enumerate(cumulative_weights):
+        if w <= p:
+            return i
+    return len(cumulative_weights) - 1
+
+
+def cumulative_weights(ps: list[float]) -> list[float]:
+    cps = []
+    running_sum = 0
+    for p in ps:
+        running_sum += p
+        cps.append(running_sum)
+    return cps
+
+
+def sample(weights: dict[str, float], k: int) -> list[str]:
+    "Sample from a population, with unique elements"
+    _sample = []
+    population = sorted(weights)
+    assert k <= len(
+        population
+    ), "Can only sample unique elements if number of samples less than population"
+    if k == len(population):
+        return population
+    total_weight = sum(weights.values())
+    for _ in range(k):
+        cumulative_ps = cumulative_weights([weights[w] / total_weight for w in population])
+        val = population[random_index(cumulative_ps)]
+        _sample.append(val)
+        population.remove(val)
+    return _sample
+
+
 def generate_condition(id: str) -> list[Condition]:
     n_conditions = random.choices(range(5), weights=[48, 8, 4, 2, 1])[0] + 1
-    population_conditions, counts = zip(*W["condition"].items(), strict=False)
-    conditions = random.sample(population_conditions, n_conditions, counts=counts)
-    presenceAbsences = [random_code("presenceAbsence") for _ in range(len(conditions))]
+
+    conditions = sample(W["condition"], n_conditions)
+    assert len(set(conditions)) == len(conditions)
+    presenceAbsences = [random_code("presenceAbsence") for _ in conditions]
     return [
         {
             "subject": f"Patient/{id}",
             "encounter": f"Encounter/{id}",
             "code.code": [condition],
             "extension.presenceAbsence.code": [presenceAbsence],
+            "category.code": [SYMPTOM_CATEGORY if condition in SYMPTOMS else COMORBIDITY_CATEGORY],
         }
         for condition, presenceAbsence in zip(conditions, presenceAbsences, strict=False)
     ]

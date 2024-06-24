@@ -13,7 +13,8 @@ import pandas as pd
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 
-from .types import PlotInfo, PlotType
+from .palettes import PALETTE_GLOBALDOTHEALTH
+from .types import DataPlotInfo, PlotInfo, PlotType
 
 DEFAULT_HEIGHT = 430
 DEFAULT_FONT = "Helvetica"
@@ -24,15 +25,7 @@ def ax(cols: dict[str, str], key: str) -> str:
 
 
 def get_colors(kwargs: PlotInfo) -> list[str]:
-    return kwargs.get("colors") or [
-        # G.h color palette
-        "#007AEC",
-        "#6BADEA",
-        "#00C6AF",
-        "#0E7569",
-        "#FD685B",
-        "#FD9986",
-    ]
+    return kwargs.get("colors") or PALETTE_GLOBALDOTHEALTH
 
 
 def require_columns(
@@ -72,7 +65,7 @@ def _compute_intersections(dataframe: pd.DataFrame) -> OrderedDict:
         for combo in itertools.combinations(categories, r):
             # Intersection is where all categories in the combo have a 1
             mask = dataframe[list(combo)].all(axis=1)
-            intersections[combo] = mask.sum()
+            intersections[combo] = int(mask.sum())
 
     # Sort intersections by size in descending order
     return OrderedDict(sorted(intersections.items(), key=lambda x: x[1], reverse=True))
@@ -115,22 +108,25 @@ def upset(data, **kwargs: Unpack[PlotInfo]) -> go.Figure:
     # Create bar chart traces for intersection sizes
     bar_traces = []
     for intersection, size in intersections.items():
-        bar_traces.append(
-            go.Bar(
-                y=[size],
-                x=[" & ".join(intersection)],
-                orientation="v",
-                name=" & ".join(intersection),
-                marker={"color": colors[0]},
+        if size > 0:
+            bar_traces.append(
+                go.Bar(
+                    y=[size],
+                    x=[" & ".join(intersection)],
+                    orientation="v",
+                    name=" & ".join(intersection),
+                    marker={"color": colors[0]},
+                )
             )
-        )
 
     # Add bar traces to the top subplot
     for trace in bar_traces:
         fig.add_trace(trace, row=1, col=1)
 
     # Create matrix scatter plot and lines
-    for intersection in intersections:
+    for intersection, size in intersections.items():
+        if size == 0:
+            continue
         x_name = " & ".join(intersection)
         y_coords = [-1 - categories.get_loc(cat) for cat in categories if cat in intersection]  # type: ignore
         x_coords = [x_name] * len(y_coords)
@@ -143,6 +139,7 @@ def upset(data, **kwargs: Unpack[PlotInfo]) -> go.Figure:
                 mode="markers",
                 marker=dict(size=10, color="black"),
                 showlegend=False,
+                hoverinfo="skip",
             ),
             row=2,
             col=1,
@@ -157,6 +154,7 @@ def upset(data, **kwargs: Unpack[PlotInfo]) -> go.Figure:
                     mode="lines",
                     line=dict(color="black", width=1),
                     showlegend=False,
+                    hoverinfo="skip",
                 ),
                 row=2,
                 col=1,
@@ -289,7 +287,6 @@ def pyramid(data: pd.DataFrame, **kwargs: Unpack[PlotInfo]) -> go.Figure:
     max_value = data[c_value].abs().max()
     for side, stack_group in slots:
         subset = data[(data[c_side] == side) & (data[c_stack_group] == stack_group)]
-        print(subset)
         if subset.empty:
             continue
         # Get color from the color_map using both side and stack_group
@@ -312,7 +309,7 @@ def pyramid(data: pd.DataFrame, **kwargs: Unpack[PlotInfo]) -> go.Figure:
     sorted_y_axis = [f"{start}-{end}" for start, end in sorted_ranges]
 
     # sorted_y_axis = sorted(dataframe['y_axis'].unique(), reverse=True)
-    max_value = sum(data.groupby("stack_group").value.apply(max))
+    max_value = sum(data.groupby(c_stack_group)[c_value].apply(max))
     # Layout settings
     layout = go.Layout(
         title=kwargs.get("title", "Pyramid plot"),
@@ -451,10 +448,18 @@ def proportion(data: pd.DataFrame, **kwargs: Unpack[PlotInfo]) -> go.Figure:
     return go.Figure(data=traces, layout=layout)
 
 
-def plot(data: pd.DataFrame, type: PlotType, **kwargs: Unpack[PlotInfo]) -> go.Figure:
+def plot_unpacked(
+    data: pd.DataFrame, type: PlotType | None, **kwargs: Unpack[PlotInfo]
+) -> go.Figure | pd.DataFrame:
     "Generic plotting function dispatcher"
 
+    if type is None:
+        return data
     dispatch = {"upset": upset, "proportion": proportion, "pyramid": pyramid}
     if type not in dispatch.keys():
         raise ValueError(f"Plotting not supported for type: {type}")
     return dispatch[type](data, **kwargs)
+
+
+def plot(kwargs: DataPlotInfo) -> go.Figure | pd.DataFrame:
+    return plot_unpacked(**kwargs)
