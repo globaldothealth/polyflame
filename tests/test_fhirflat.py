@@ -16,13 +16,13 @@ from polyflame.fhirflat import (
     age_pyramid,
 )
 
-DATA = Path("tests/data")
+DATA = Path("polyflame/samples/sample-fhirflat")
 CHECKSUM = "03cc8e28d97a6a3ab20926d7c3f891f14e119eb882c6e8d3deb07e1b79eed089"
 SOURCE: SourceInfo = {
     "N": 10,
     "checksum": CHECKSUM,
     "checksum_file": "sha256sums.txt",
-    "path": Path("tests/data"),
+    "path": DATA,
 }
 
 

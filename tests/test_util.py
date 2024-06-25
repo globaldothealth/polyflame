@@ -10,18 +10,19 @@ from polyflame.types import SourceInfo
 from polyflame.util import get_checksum, load_taxonomy, msg_part_not_found
 from polyflame.fhirflat import read_part, with_readable_terms
 
+DATA = Path("polyflame/samples/sample-fhirflat")
 TAXONOMY = load_taxonomy("fhirflat-isaric3")
 CHECKSUM = "03cc8e28d97a6a3ab20926d7c3f891f14e119eb882c6e8d3deb07e1b79eed089"
 SOURCE: SourceInfo = {
     "N": 10,
     "checksum": CHECKSUM,
     "checksum_file": "sha256sums.txt",
-    "path": Path("tests/data"),
+    "path": DATA,
 }
 
 
 def test_get_checksum():
-    assert get_checksum("tests/data/sha256sums.txt") == CHECKSUM
+    assert get_checksum("polyflame/samples/sample-fhirflat/sha256sums.txt") == CHECKSUM
 
 
 def test_load_taxonomy():
@@ -36,7 +37,7 @@ def test_load_taxonomy_error():
 def test_msg_part_not_found():
     assert (
         msg_part_not_found(SOURCE, "immunization")
-        == "Data at path=tests/data missing part=immunization"
+        == "Data at path=polyflame/samples/sample-fhirflat missing part=immunization"
     )
 
 
