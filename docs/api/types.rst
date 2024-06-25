@@ -14,11 +14,3 @@
 .. autoclass:: polyflame.types.ReadableTermColumnInfo
    :members:
    :undoc-members:
-
-.. autoclass:: polyflame.types.SourceInfo
-   :members:
-   :undoc-members:
-
-.. autoclass:: polyflame.types.SourceInfo
-   :members:
-   :undoc-members:

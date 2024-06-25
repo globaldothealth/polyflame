@@ -4,6 +4,10 @@ Polymorphic FLexible Analytics and Modelling Engine
 
 This package is part of the Global.health-ISARIC pipeline.
 
+```{warning}
+This library is in **prototype phase** and subject to major revisions
+```
+
 ## Context and Problem
 
 Data processing and transformation (ETL) is done by the
