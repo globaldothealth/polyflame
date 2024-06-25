@@ -11,12 +11,14 @@ name = "polyflame"
 version = "0.1.0"
 description = "Polymorphic FLexible Analytics and Modelling Engine"
 license = {file = "LICENSE"}
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 readme = "README.md"
 classifiers = ["License :: OSI Approved :: MIT License"]
 dependencies = [
     "pandas[parquet]==2.2.*",
-    "plotly==5.*"
+    "plotly==5.*",
+    "typing-extensions==4.*; python_version < '3.11'",
+    "tomli; python_version < '3.11'"
 ]
 
 [project.optional-dependencies]

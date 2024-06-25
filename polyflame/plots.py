@@ -8,8 +8,14 @@ https://github.com/ISARICResearch/VERTEX/blob/main/IsaricDraw.py
 
 import colorsys
 import itertools
+import sys
 from collections import OrderedDict
-from typing import Unpack
+
+if sys.version_info < (3, 11):
+    from typing_extensions import Unpack
+else:
+    from typing import Unpack
+
 
 import pandas as pd
 import plotly.graph_objs as go
