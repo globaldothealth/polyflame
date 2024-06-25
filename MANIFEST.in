@@ -1,4 +1,2 @@
 include polyflame/taxonomy/*.toml
-include polyflame/samples/sample_fhirflat/*.parquet
-include polyflame/samples/sample_fhirflat/fhirflat.toml
-include polyflame/samples/sample_fhirflat/sha256sums.txt
+include polyflame/samples/sample-fhirflat/*
