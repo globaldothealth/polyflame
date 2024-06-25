@@ -1,5 +1,5 @@
 """
-FHIRFLAME - FHIR FLexible Analytics and Modelling Engine
+PolyFLAME - Polymorphic Flexible Analytics and Modelling Engine
 """
 
 from .plots import plot, plot_unpacked

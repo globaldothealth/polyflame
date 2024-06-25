@@ -33,7 +33,21 @@ def read_metadata(file: Path) -> SourceInfo:
 
 
 def use_source(folder: str | Path, checksum: str) -> SourceInfo:
-    "Reads FHIRFlat data"
+    """Sets up a FHIRFlat source which can be used by analysis tools
+
+    Parameters
+    ----------
+    folder
+        Folder to load FHIRFlat data from. The folder must have a valid
+        ``fhirflat.toml`` file
+    checksum
+        Checksum to verify data integrity.
+        Must match the ``checksum`` field in ``fhirflat.toml``.
+
+    Returns
+    -------
+    Source information as a dictionary
+    """
     metadata_file = Path(folder) / METADATA_FILE
     if not metadata_file.exists():
         raise FileNotFoundError(f"FHIRFlat metadata not found: {metadata_file}")
@@ -72,7 +86,8 @@ def read_part(
         return df
 
 
-def read_condition(source: SourceInfo, tx: Taxonomy = DEFAULT_TAXONOMY):
+def read_condition(source: SourceInfo, tx: Taxonomy | None = None):
+    tx = tx or DEFAULT_TAXONOMY
     condition = read_part(
         source,
         "condition",
@@ -90,8 +105,9 @@ def read_condition(source: SourceInfo, tx: Taxonomy = DEFAULT_TAXONOMY):
     )
 
 
-def condition_proportion(source: SourceInfo, tx: Taxonomy = DEFAULT_TAXONOMY) -> DataPlotInfo:
+def condition_proportion(source: SourceInfo, tx: Taxonomy | None = None) -> DataPlotInfo:
     "Returns proportions of condition"
+    tx = tx or DEFAULT_TAXONOMY
     condition = read_condition(source, tx)
 
     # Uses the fact that True = 1 and False = 0 in Python 3, so .mean()
@@ -107,10 +123,9 @@ def condition_proportion(source: SourceInfo, tx: Taxonomy = DEFAULT_TAXONOMY) ->
     }
 
 
-def condition_upset(
-    source: SourceInfo, tx: Taxonomy = DEFAULT_TAXONOMY, N: int = 5
-) -> DataPlotInfo:
+def condition_upset(source: SourceInfo, tx: Taxonomy | None = None, N: int = 5) -> DataPlotInfo:
     "Returns UpSet plot data, for top `N` conditions (default 5)"
+    tx = tx or DEFAULT_TAXONOMY
     condition = read_condition(source, tx)[["subject", "condition", "presenceAbsence"]]
     # get top N conditions
     condition_counts = condition[condition.presenceAbsence].condition.value_counts()
@@ -126,9 +141,10 @@ def condition_upset(
 
 def age_pyramid(
     source: SourceInfo,
-    tx: Taxonomy = DEFAULT_TAXONOMY,
+    tx: Taxonomy | None = None,
     age_bins: Sequence[int] = DEFAULT_AGE_BINS,
 ) -> DataPlotInfo:
+    tx = tx or DEFAULT_TAXONOMY
     patient = with_readable_terms(
         read_part(
             source,

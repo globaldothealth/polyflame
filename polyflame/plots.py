@@ -1,7 +1,9 @@
 """
+Plots
+=====
+
 Based on ISARICDraw.py:
 https://github.com/ISARICResearch/VERTEX/blob/main/IsaricDraw.py
-Original-Author: Esteban Garcia
 """
 
 import colorsys
@@ -74,22 +76,21 @@ def _compute_intersections(dataframe: pd.DataFrame) -> OrderedDict:
 def upset(data, **kwargs: Unpack[PlotInfo]) -> go.Figure:
     """UpSet plot
 
-    Example:
-    ```
-                 Intersection size
+    .. code-block:: text
 
-    40           █
-    30           █  █
-    20           █  █     █
-    10           █  █  █  █     █
-    0            █  █  █  █  █  █  █
+                    Intersection size
 
-    cough        ●        ●     ●  ●
-                          |     |  |
-    sore throat     ●     ●  ●  |  ●
-                             |  |  |
-    headache           ●     ●  ●  ●
-    ```
+        40           █
+        30           █  █
+        20           █  █     █
+        10           █  █  █  █     █
+        0            █  █  █  █  █  █  █
+
+        cough        ●        ●     ●  ●
+                              |     |  |
+        sore throat     ●     ●  ●  |  ●
+                                 |  |  |
+        headache           ●     ●  ●  ●
     """
     colors = get_colors(kwargs)
     categories = data.columns
@@ -251,17 +252,16 @@ def cumulative_bar(data: pd.DataFrame, **kwargs: Unpack[PlotInfo]) -> go.Figure:
 def pyramid(data: pd.DataFrame, **kwargs: Unpack[PlotInfo]) -> go.Figure:
     """Dual-stack pyramid plot, used for age pyramid
 
-    Example:
-    ```
-    ↓ Age                Female       |          Male
-                                      |
-    91-95                             |██
-    86-90                       █▒▒▒▒▒|▒▒▒▒▒█
-    81-85                      ▒▒▒▒▒▒▒|▒▒▒▒▒▒▒▒██
-    76-80               ██▒▒▒▒▒▒▒▒▒▒▒▒|▒▒▒▒▒████
+    .. code-block:: text
 
-    ██ death  ▒▒ discharged
-    ```
+        ↓ Age                Female       |          Male
+                                          |
+        91-95                             |██
+        86-90                       █▒▒▒▒▒|▒▒▒▒▒█
+        81-85                      ▒▒▒▒▒▒▒|▒▒▒▒▒▒▒▒██
+        76-80               ██▒▒▒▒▒▒▒▒▒▒▒▒|▒▒▒▒▒████
+
+        ██ death  ▒▒ discharged
     """
     cols = kwargs.get("cols", {})
     require_columns(data, ["side", "y", "stack_group", "value"], cols)
@@ -370,16 +370,15 @@ def pyramid(data: pd.DataFrame, **kwargs: Unpack[PlotInfo]) -> go.Figure:
 def proportion(data: pd.DataFrame, **kwargs: Unpack[PlotInfo]) -> go.Figure:
     """Proportions plot by label
 
-    Example:
-    ```
-                  Frequency of signs and symptoms
+    .. code-block:: text
 
-          cough ████████████████████████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-    sore throat ████████████████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-          fever ███████████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+                        Frequency of signs and symptoms
 
-    ██ yes  ▒▒ no
-    ```
+              cough  ████████████████████████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+        sore throat  ████████████████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+              fever  ███████████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+
+        ██ yes  ▒▒ no
     """
     cols = kwargs.get("cols", {})
     require_columns(data, ["label", "proportion"], cols)
@@ -451,7 +450,17 @@ def proportion(data: pd.DataFrame, **kwargs: Unpack[PlotInfo]) -> go.Figure:
 def plot_unpacked(
     data: pd.DataFrame, type: PlotType | None, **kwargs: Unpack[PlotInfo]
 ) -> go.Figure | pd.DataFrame:
-    "Generic plotting function dispatcher"
+    """Generic plotting function dispatcher, unpacked version
+
+    Parameters
+    ----------
+    data
+        Data to plot
+    type
+        Type of plot, one of *pyramid*, *upset* or *proportion*
+    **kwargs
+        Additional plot parameters
+    """
 
     if type is None:
         return data
@@ -462,4 +471,10 @@ def plot_unpacked(
 
 
 def plot(kwargs: DataPlotInfo) -> go.Figure | pd.DataFrame:
+    """Generic plotting function for PolyFLAME
+
+    Unlike :ref:`polyflame.plot_unpacked`, this function takes a single
+    dictionary as a parameter. This is used together with adapter functions
+    from data sources, such as :ref:`polyflame.fhirflat`.
+    """
     return plot_unpacked(**kwargs)
