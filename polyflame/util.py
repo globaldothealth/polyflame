@@ -1,9 +1,14 @@
 import hashlib
-import tomllib
+import sys
 from pathlib import Path
 from typing import Callable
 
 import pandas as pd
+
+if sys.version_info < (3, 11):
+    import tomli as tomllib  # pragma: no cover
+else:
+    import tomllib  # pragma: no cover
 
 from .types import ReadableTermColumnInfo, SourceInfo, Taxonomy
 

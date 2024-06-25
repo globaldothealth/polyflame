@@ -5,8 +5,14 @@ Types
 Types used throughout polyflame
 """
 
+import sys
 from pathlib import Path
-from typing import Literal, Required, TypedDict
+from typing import Literal, TypedDict
+
+if sys.version_info < (3, 11):
+    from typing_extensions import Required  # pragma: no cover
+else:
+    from typing import Required  # pragma: no cover
 
 import pandas as pd
 

@@ -4,9 +4,14 @@ FHIRFlat adapter for PolyFLAME
 Reads in FHIRFlat files and provides commonly used analysis functions
 """
 
-import tomllib
+import sys
 from pathlib import Path
 from typing import Final, Sequence
+
+if sys.version_info < (3, 11):
+    import tomli as tomllib
+else:
+    import tomllib
 
 import numpy as np
 import pandas as pd
