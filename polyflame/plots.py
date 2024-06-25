@@ -473,8 +473,8 @@ def plot_unpacked(
 def plot(kwargs: DataPlotInfo) -> go.Figure | pd.DataFrame:
     """Generic plotting function for PolyFLAME
 
-    Unlike :ref:`polyflame.plot_unpacked`, this function takes a single
+    Unlike :meth:`polyflame.plot_unpacked`, this function takes a single
     dictionary as a parameter. This is used together with adapter functions
-    from data sources, such as :ref:`polyflame.fhirflat`.
+    from data sources, such as the :doc:`/api/fhirflat`.
     """
     return plot_unpacked(**kwargs)
