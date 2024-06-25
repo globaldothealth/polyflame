@@ -25,9 +25,8 @@ dev = [
   "pytest-cov",
 ]
 docs = [
-  "sphinx>=7.2.2",
-  "myst-parser==2.0.*",
-  "sphinx-better-theme"
+  "jupyter-book==1.*",
+  "sphinxcontrib-mermaid"
 ]
 
 [project.urls]

@@ -1,0 +1,2 @@
+.. automodule:: polyflame.plots
+    :members:
