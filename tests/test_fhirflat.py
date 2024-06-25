@@ -7,6 +7,7 @@ import pytest
 
 from polyflame.types import SourceInfo
 from polyflame.fhirflat import (
+    read_part,
     read_metadata,
     use_source,
     part_file,
@@ -52,6 +53,10 @@ def test_part_file_missing():
     source = use_source(DATA, CHECKSUM)
     with pytest.raises(FileNotFoundError):
         part_file(source, "immunization")
+
+
+def test_read_part():
+    read_part(SOURCE, "patient")
 
 
 def test_condition_upset():
