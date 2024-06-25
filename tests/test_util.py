@@ -3,6 +3,9 @@ Tests for polyflame.util
 """
 
 from pathlib import Path
+
+import pytest
+
 from polyflame.types import SourceInfo
 from polyflame.util import get_checksum, load_taxonomy, msg_part_not_found
 from polyflame.fhirflat import read_part, with_readable_terms
@@ -23,6 +26,11 @@ def test_get_checksum():
 
 def test_load_taxonomy():
     assert load_taxonomy("fhirflat-isaric3")
+
+
+def test_load_taxonomy_error():
+    with pytest.raises(FileNotFoundError):
+        load_taxonomy("notfound")
 
 
 def test_msg_part_not_found():
