@@ -9,9 +9,9 @@ from pathlib import Path
 from typing import Final, Sequence
 
 if sys.version_info < (3, 11):
-    import tomli as tomllib
+    import tomli as tomllib  # pragma: no cover
 else:
-    import tomllib
+    import tomllib  # pragma: no cover
 
 import numpy as np
 import pandas as pd

@@ -12,9 +12,9 @@ import sys
 from collections import OrderedDict
 
 if sys.version_info < (3, 11):
-    from typing_extensions import Unpack
+    from typing_extensions import Unpack  # pragma: no cover
 else:
-    from typing import Unpack
+    from typing import Unpack  # pragma: no cover
 
 
 import pandas as pd
