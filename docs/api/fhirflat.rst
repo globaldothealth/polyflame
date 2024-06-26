@@ -1,4 +1,4 @@
-FHIRFlat adapter
+FHIRflat adapter
 ================
 
 .. automodule:: polyflame.fhirflat

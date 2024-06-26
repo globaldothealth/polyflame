@@ -1,7 +1,7 @@
 """
-FHIRFlat adapter for PolyFLAME
+FHIRflat adapter for PolyFLAME
 
-Reads in FHIRFlat files and provides commonly used analysis functions
+Reads in FHIRflat files and provides commonly used analysis functions
 """
 
 import sys
@@ -26,7 +26,7 @@ DEFAULT_AGE_BINS = [-1, *list(5 * np.arange(25))]  # highest age of 120
 
 
 def read_metadata(file: Path) -> SourceInfo:
-    "Read FHIRFlat metadata file"
+    "Read FHIRflat metadata file"
     metadata = tomllib.loads(file.read_text())["metadata"]
     N = metadata.get("N")
     return {
@@ -38,12 +38,12 @@ def read_metadata(file: Path) -> SourceInfo:
 
 
 def use_source(folder: str | Path, checksum: str) -> SourceInfo:
-    """Sets up a FHIRFlat source which can be used by analysis tools
+    """Sets up a FHIRflat source which can be used by analysis tools
 
     Parameters
     ----------
     folder
-        Folder to load FHIRFlat data from. The folder must have a valid
+        Folder to load FHIRflat data from. The folder must have a valid
         ``fhirflat.toml`` file
     checksum
         Checksum to verify data integrity.
@@ -55,7 +55,7 @@ def use_source(folder: str | Path, checksum: str) -> SourceInfo:
     """
     metadata_file = Path(folder) / METADATA_FILE
     if not metadata_file.exists():
-        raise FileNotFoundError(f"FHIRFlat metadata not found: {metadata_file}")
+        raise FileNotFoundError(f"FHIRflat metadata not found: {metadata_file}")
     metadata = read_metadata(metadata_file)
     expected_checksum = metadata["checksum"]
     actual_checksum = get_checksum(metadata["path"] / metadata["checksum_file"])

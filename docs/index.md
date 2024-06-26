@@ -11,12 +11,12 @@ This library is in **prototype phase** and subject to major revisions
 ## Context and Problem
 
 Data processing and transformation (ETL) is done by the
-[FHIRFlat](https://fhirflat.readthedocs.io) library. Once input data is brought
-into FHIRFlat, it is represented as a (optionally zipped) folder of FHIR
+[FHIRflat](https://fhirflat.readthedocs.io) library. Once input data is brought
+into FHIRflat, it is represented as a (optionally zipped) folder of FHIR
 resources, with a parquet file corresponding to each resource:
 `patient.parquet`, `encounter.parquet` and so on.
 
-Once the data is in FHIRFlat, we need a easy to use library that can be used by
+Once the data is in FHIRflat, we need a easy to use library that can be used by
 itself, and as a building block for visualizations such as
 [VERTEX](https://vertex-isaric.replit.app).
 
@@ -24,7 +24,7 @@ itself, and as a building block for visualizations such as
 other downstream code to allow querying answers to common research questions in
 a reproducible analytical pipeline (RAP).
 
-**Non-goals**: Allow answering arbitrary questions. FHIRFlat uses open formats
+**Non-goals**: Allow answering arbitrary questions. FHIRflat uses open formats
 (parquet) that users can query directly using tools such as pandas or the R
 [{arrow}](https://arrow.apache.org/docs/1.0/r/) package, and FHIRFLAME allows
 flexibility in dataframe type as long as the dataframe schema required patterns
@@ -51,7 +51,7 @@ based on a general *dataframe schema* (column names and types).
 flowchart LR
 OTH[Other formats] --> plot["plot()"]
 REDCap --> plot
-FHIRFlat --> plot --> UP[upset plot]
+FHIRflat --> plot --> UP[upset plot]
 plot --> FREQ[frequency plot]
 plot --> P[pyramid plot]
 ```
@@ -74,7 +74,7 @@ columns (if they are not present) which is specified in the `cols` parameter.
 ### Data standard specific extensions
 
 Extensions are coded as submodules of the main `polyflame` library, such as
-`polyflame.fhirflat` to read FHIRFlat data
+`polyflame.fhirflat` to read FHIRflat data
 
 ```python
 >>> from polyflame import load_data

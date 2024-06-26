@@ -34,7 +34,7 @@ def checksum_text(checksums: dict[str, str]) -> str:
 
 
 def generate_metadata(folder_name: str | Path) -> tuple[FlatMetadata, dict[str, str]]:
-    "Generate metadata for a FHIRFlat folder"
+    "Generate metadata for a FHIRflat folder"
 
     checksums = {f.name: get_checksum(f) for f in Path(folder_name).glob("*.parquet")}
     m = hashlib.sha256()
