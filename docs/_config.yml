@@ -2,6 +2,7 @@
 # Learn more at https://jupyterbook.org/customize/config.html
 
 title: PolyFLAME
+author: the Global.health team
 logo: polyflame.png
 
 # Force re-execution of notebooks on each build.
