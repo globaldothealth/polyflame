@@ -1,5 +1,11 @@
 # PolyFLAME
 
+[![](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![tests](https://github.com/globaldothealth/polyflame/actions/workflows/tests.yml/badge.svg)](https://github.com/globaldothealth/polyflame/actions/workflows/tests.yml)
+[![docs](https://readthedocs.org/projects/polyflame/badge/)](https://polyflame.readthedocs.io)
+[![codecov](https://codecov.io/gh/globaldothealth/polyflame/graph/badge.svg)](https://codecov.io/gh/globaldothealth/polyflame)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 Polymorphic FLexible Analytics and Modelling Engine
 
 This package is part of the Global.health-ISARIC pipeline.
