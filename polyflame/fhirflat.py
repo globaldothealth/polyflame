@@ -88,6 +88,21 @@ def part_file(source: SourceInfo, resource: str) -> Path:
 def read_part(
     source: SourceInfo, resource: str, column_mappings: dict[str, str] | None = None
 ) -> pd.DataFrame:
+    """Reads a part from a source
+
+    Parameters
+    ----------
+    source
+        Source information to read from, supplied by :py:func:`use_source`
+    resource
+        Resource to read in, use :py:func:`list_parts` to obtain a list
+    column_mappings
+        Dictionary of column mappings
+
+    Returns
+    -------
+        Resource part as a dataframe with columns mapped
+    """
     df = pd.read_parquet(part_file(source, resource))
     if column_mappings:
         df = df[list(column_mappings.keys())]  # only keep columns in mappings
