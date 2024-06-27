@@ -72,6 +72,11 @@ Specified: {expected_checksum}.
     return metadata
 
 
+def list_parts(source: SourceInfo) -> list[str]:
+    "Lists available parts in source"
+    return sorted(f.stem for f in source["path"].glob("*.parquet"))
+
+
 def part_file(source: SourceInfo, resource: str) -> Path:
     path = source["path"]
     resource_file = path / f"{resource}.parquet"

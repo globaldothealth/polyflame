@@ -10,6 +10,7 @@ from polyflame.fhirflat import (
     read_part,
     read_metadata,
     use_source,
+    list_parts,
     part_file,
     condition_upset,
     condition_proportion,
@@ -32,6 +33,10 @@ def test_read_metadata():
 
 def test_use_source():
     assert use_source(DATA, CHECKSUM) == SOURCE
+
+
+def test_list_parts():
+    assert list_parts(SOURCE) == ["condition", "encounter", "patient"]
 
 
 def test_use_source_filenotfound():
