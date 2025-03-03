@@ -36,6 +36,7 @@ class ReadableTermColumnInfo(TypedDict, total=False):
 
 class SourceInfo(TypedDict):
     "Source information for analysis functions to load data"
+
     N: int | None
     "Number of patients"
     path: Path
@@ -65,6 +66,7 @@ class PlotInfo(TypedDict, total=False):
 
 class DataPlotInfo(PlotInfo):
     "Extension of :py:class:`polyflame.types.PlotInfo` to add data and plot type"
+
     data: pd.DataFrame
     "Data corresponding to the plot"
     type: PlotType | None
